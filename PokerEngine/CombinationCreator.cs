@@ -213,7 +213,8 @@ namespace PokerEngine
             var duplicatesCollection = GetOrderedDuplicatesCollection(cards);
             if (duplicatesCollection[1].Count() == 2)
             {
-                return CreateTwoPairs(duplicatesCollection[0], duplicatesCollection[1], duplicatesCollection[2]);
+                var restOrdered = duplicatesCollection.Skip(2).OrderByDescending(group => group.Key);
+                return CreateTwoPairs(duplicatesCollection[0], duplicatesCollection[1], restOrdered.First());
             }
             else
             {

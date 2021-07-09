@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PokerEngine
 {
-    class Fold : Move
+    public class Fold : Move
     {
         public override MoveAlias Alias => MoveAlias.Fold;
 

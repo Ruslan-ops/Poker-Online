@@ -43,13 +43,13 @@ namespace ConsoleUI
                 }
             };
 
-            Combination comb = CombinationCreator.Create(new List<Card> { new Card( Rank.King, Suit.Hearts ), new Card(Rank.Queen, Suit.Spades ), new Card(Rank.Nine, Suit.Hearts),
+            Combination comb = Combination.FromCards(new List<Card> { new Card( Rank.King, Suit.Hearts ), new Card(Rank.Queen, Suit.Spades ), new Card(Rank.Nine, Suit.Hearts),
                                                                           new Card(Rank.Four, Suit.Clubs ), new Card(Rank.Eight, Suit.Diamonds ), new Card(Rank.Two, Suit.Hearts), new Card(Rank.Three, Suit.Diamonds ) });
-            Console.WriteLine(comb.Type);
+            /*Console.WriteLine(comb.Type);
             foreach (Card card in comb)
             {
                 Console.WriteLine(card);
-            }
+            }*/
             /*Enum en = (Enum)3;
             List<int> li = new List<int>();
             li.Clear();
@@ -67,7 +67,7 @@ namespace ConsoleUI
                     Player player = table.GetWhoseMove();
 
                     Console.WriteLine("________________________");
-                    Console.WriteLine(table.CurrentRound.ToUpper());
+                    Console.WriteLine(table.CurrentRound.ToString().ToUpper());
                     string boardCards = CardListToString(table.GetBoardCards());
                     Console.WriteLine($"Board: {boardCards}");
                     Console.WriteLine($"{player.Name}, It's your turn!");

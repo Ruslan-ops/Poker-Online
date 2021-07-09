@@ -45,13 +45,6 @@ namespace PokerEngine
             Size--;
             return _cards[topIndex];
         }
-        public void Show()
-        {
-            for (int i = 0; i < Size; i++)
-            {
-                Console.WriteLine($"{i}. {_cards[i].Rank} of {_cards[i].Suit}");
-            }
-        }
 
         public void Reset()
         {

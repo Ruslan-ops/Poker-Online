@@ -9,7 +9,7 @@ namespace PokerEngine
     {
         private const int MaxCardsAmount = 5;
         private List<Card> _cards;
-        public int CardsAmount { get { return _cards.Count; } private set { } }
+        public int CardsAmount => _cards.Count; 
 
         public Board()
         {
@@ -32,19 +32,10 @@ namespace PokerEngine
                 throw new Exception("Board overflow");
             }
         }
-
-        public List<Card> ToCardsList()
-        {
-            return new List<Card>(_cards);
-        }
         
-
         public IEnumerator<Card> GetEnumerator()
         {
-            foreach (Card card in _cards)
-            {
-                yield return card;
-            }
+            return _cards.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

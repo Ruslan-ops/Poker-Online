@@ -6,7 +6,7 @@ namespace PokerEngine
 {
     class Dealer
     {
-        public event Action PutNewCardEvent;
+        public event Action PutNewCardsEvent;
         public int PlayerChips { get; private set; }
         public int CurrentMaxBetSize => _betsLogAtRound.MaxBetSizeInRound;
         public int SmallBlindSize { get; private set; }
@@ -38,9 +38,9 @@ namespace PokerEngine
             return new Hand(_deck.TakeTopCard(), _deck.TakeTopCard());
         }
 
-        public List<Card> GetBoardCards()
+        public IEnumerable<Card> GetBoardCards()
         {
-            return _board.ToCardsList();
+            return _board;
         }
 
         public Card GetCard()
@@ -78,7 +78,7 @@ namespace PokerEngine
                 _board.PutNewCard(this);
             }
             _betsLogAtRound.Clear();
-            PutNewCardEvent();
+            PutNewCardsEvent();
         }
 
         public void PutChipsInPotFrom(Player player, int betSize)
@@ -137,15 +137,6 @@ namespace PokerEngine
             return _betsLogAtRound.GetBetSizeInRoundOf(player);
         }
 
-        /*public int GetBetSizeInDealOf(Player player)
-        {
-            return _betsLogAtRound.GetBetSizeInDealOf(player);
-        }*/
-
-
-        /*public void ShowDeck()
-        {
-            _deck.Show();
-        }*/
+       
     }
 }

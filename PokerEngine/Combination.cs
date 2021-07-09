@@ -35,14 +35,16 @@ namespace PokerEngine
             }
         }
 
-        public IEnumerator<Card> GetEnumerator()
+        public static Combination FromCards(IEnumerable<Card> cards)
         {
-            return _evaluetedCards.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
+            if(cards.Count() == 2 || cards.Count() >= 5)
+            {
+                return CombinationCreator.Create(cards);
+            }
+            else
+            {
+                throw new ArgumentException("Cards amount in combination must be ethier 2 or bigger than 4");
+            }
         }
 
         public int CompareTo(object other)
@@ -68,6 +70,14 @@ namespace PokerEngine
             return sb.ToString();
         }
 
-        
+        public IEnumerator<Card> GetEnumerator()
+        {
+            return _evaluetedCards.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 }

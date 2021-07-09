@@ -8,9 +8,9 @@ namespace PokerEngine
 {
     class PlayersSittingInCircle : IEnumerable<Player>
     {
-        public event Action PlayerMadeMoveEvent;
+        //public event Action PlayerMadeMoveEvent;
         public event Action PlayerMadeFoldEvent;
-        public event Action PlayerMadeAllInEvent;
+        //public event Action PlayerMadeAllInEvent;
 
         public int Amount => _players.Size;
         public readonly int SeatsAmount;
@@ -48,9 +48,7 @@ namespace PokerEngine
                 }
             }
             _players.Insert(indexInPlayers, player);
-            player.MadeMoveEvent += PlayerMadeMoveEvent;
             player.MadeFoldEvent += PlayerMadeFoldEvent;
-            player.MadeAllInEvent += PlayerMadeAllInEvent;
 
 
         }
@@ -109,12 +107,7 @@ namespace PokerEngine
             return requiredPlayer ?? throw new Exception("No such player");
         }
 
-        /*public Player Get(int playerNumber)
-        {
-            return _players[playerNumber];
-        }*/
-
-        public Player GetPlayer(int seatNumber)
+        public Player Get(int seatNumber)
         {
             if (seatNumber < 0 || seatNumber >= SeatsAmount)
             {
@@ -141,9 +134,7 @@ namespace PokerEngine
             Player playerToDelete = seatWithDealetingPlayer.Player;
             _players.Remove(playerToDelete);
             seatWithDealetingPlayer.RemovePlayer();
-            playerToDelete.MadeMoveEvent -= PlayerMadeMoveEvent;
             playerToDelete.MadeFoldEvent -= PlayerMadeFoldEvent;
-            playerToDelete.MadeAllInEvent -= PlayerMadeAllInEvent;
         }
         public void DeleteAt(int seatNumber)
         {

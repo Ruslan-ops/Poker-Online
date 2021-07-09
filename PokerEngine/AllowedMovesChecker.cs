@@ -15,18 +15,12 @@ namespace PokerEngine
             _betsLog = betsLogAtRound;
         }
 
-
         public void CheckValidationFor(Player player, Move move)
         {
-            bool isMoveValid = false;
             List<MoveAlias> allowedMoves = GetAllowedMovesFor(player);
-            for (int i = 0; i < MovesCount; i++)
+            if (allowedMoves.Contains(move.Alias))
             {
-                isMoveValid = move.Alias.Equals(allowedMoves[i]);
-                if (isMoveValid)
-                {
-                    return;
-                }
+                return;
             }
             throw new Exception("This move is forbidden");
         }

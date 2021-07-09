@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
+
+[assembly: InternalsVisibleTo("PokerEngineTests")]
 namespace PokerEngine
 {
     public class Table
     {
+        public event Action DealStartedEvent;
         public event Action DealFinishedEvent;
+        public event Action NewRoundStartedEvent;
         public event Action<IEnumerable<Player>> ShowDownEvent;
         public event Action<IEnumerable<WonPotInfo>> WinnersGotPotEvent;
         public readonly int StartStack;
@@ -19,7 +24,10 @@ namespace PokerEngine
         public int PotSize => _dealer.GetPotSize();
         public int PlayersAmount => _playersCircle.Amount;
         public int SeatsAmount => _playersCircle.SeatsAmount;
-        public string CurrentRound => _currentRound != null ? _currentRound.Name : throw new InvalidOperationException("Deal hasn't started yet");
+        public Player BigBlind => _playersCircle.GetBigBlind();
+        public Player SmallBlind => _playersCircle.GetSmallBlind();
+        public Player Button => _playersCircle.GetButton();
+        public RoundType CurrentRound => _currentRound != null ? _currentRound.RoundType : throw new InvalidOperationException("Deal hasn't started yet");
         private Round _currentRound;
         private Dealer _dealer;
         private PlayersSittingInCircle _playersCircle;
@@ -35,25 +43,7 @@ namespace PokerEngine
             _playersCircle = new PlayersSittingInCircle(MaxPlayersAmount);
             _moveOrderAtRound = new MoveOrder(_playersCircle);
             _moveOrderAtRound.PlayersRanOutEvent += ContinueOrStartNewRound;
-            _moveOrderAtRound.EverybodyMadeAllInEvent += SkipRoundsToShowDown;
             _playersCircle.PlayerMadeFoldEvent += CheckPlayersInDealAmount;
-            //_playersCircle.PlayerMadeAllInEvent += CheckPlayersWithChipsAmount;
-        }
-
-        private void CheckPlayersWithChipsAmount()
-        {
-            var playersWithChips = _playersCircle.Where(p => p.IsInDeal && p.HasChips);
-            if (playersWithChips.Count() == 0)
-            {
-                SkipRoundsToShowDown();
-            }
-            else if (playersWithChips.Count() == 1)
-            {
-                if (CurrentMaxBetSize <= GetBetSizeOf(playersWithChips.First()))
-                {
-                    SkipRoundsToShowDown();
-                }
-            }
         }
 
         private void SkipRoundsToShowDown()
@@ -83,7 +73,6 @@ namespace PokerEngine
 
         public void StartNewDeal()
         {
-            //Console.WriteLine("***NEW DEAL***");
             _currentRound = new Preflop();
             _dealer.Reset();
             DealCardsToPlayers();
@@ -91,6 +80,7 @@ namespace PokerEngine
             _moveOrderAtRound.Update(_currentRound);
             BetBlinds();
             IsDeal = true;
+            DealStartedEvent?.Invoke();
         }
 
         private void BetBlinds()
@@ -112,6 +102,7 @@ namespace PokerEngine
             _currentRound = _currentRound.Next;
             _moveOrderAtRound.Update(_currentRound);
             _dealer.PutNewCardsOnBoard(_currentRound);
+            NewRoundStartedEvent?.Invoke();
         }
 
         private void FinishThisDeal()
@@ -129,9 +120,9 @@ namespace PokerEngine
             Combination maxCombination = playersInShowDown.Max(player => player.Combination);
             List<Player> winners = playersInShowDown.Where(player => player.Combination.CompareTo(maxCombination) == 0).ToList();
             var awards = new List<WonPotInfo>();
+            int wonChips = PotSize / winners.Count;
             foreach (Player winner in winners)
             {
-                int wonChips = PotSize / winners.Count;
                 _dealer.GiveChipsFromPotTo(winner, wonChips);
                 awards.Add(new WonPotInfo { Winner = winner, WonPotSize = wonChips });
 
@@ -140,7 +131,7 @@ namespace PokerEngine
             {
                 _dealer.GiveChipsFromPotTo(winners.First(), PotSize);
             }
-            ShowDownEvent(playersInShowDown);
+            ShowDownEvent?.Invoke(playersInShowDown);
             WinnersGotPotEvent?.Invoke(awards);
 
         }
@@ -152,7 +143,7 @@ namespace PokerEngine
 
         public Player GetPlayer(int seatNumber)
         {
-            return _playersCircle.GetPlayer(seatNumber);
+            return _playersCircle.Get(seatNumber);
         }
 
         private void DealCardsToPlayers()
@@ -176,25 +167,18 @@ namespace PokerEngine
             {
                 StartNewRound();
             }
-            /*
-            Player firstAtRound = _moveOrderAtRound.FirstPlayerAtCurrentRound;
-            Player firstAndInDeal = _playersCircle.GetFirstInclusiveAfter(firstAtRound, player => player.IsInDeal);
-
-            if (GetBetSizeOf(firstAndInDeal) < CurrentMaxBetSize)
-            {
-                _moveOrderAtRound.Update(firstAndInDeal);
-            }
-            else
-            {
-                StartNewRound();
-            }
-            */
         }
 
         public void AddPlayer(string playerName)
         {
             Player player = new Player(StartStack, _dealer, playerName);
             _playersCircle.Add(player);
+        }
+
+        public void AddPlayer(string playerName, int seatNumber)
+        {
+            Player player = new Player(StartStack, _dealer, playerName);
+            _playersCircle.Add(player, seatNumber);
         }
 
         internal void DeletePlayer(string playerName)
@@ -221,7 +205,11 @@ namespace PokerEngine
             if (player == GetWhoseMove())
             {
                 _dealer.CheckThatMoveIsAllowed(player, move);
-                player.MakeMove(move);
+                move.Make(player);
+                if(!_moveOrderAtRound.IsEmpty)
+                {
+                    _moveOrderAtRound.GiveMoveToNextPlayer();
+                }
             }
             else
             {

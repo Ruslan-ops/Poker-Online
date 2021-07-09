@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PokerEngine
 {
-    class Check : Move
+    public class Check : Move
     {
         public override MoveAlias Alias => MoveAlias.Check;
 

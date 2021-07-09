@@ -7,9 +7,7 @@ namespace PokerEngine
 {
     public class Player
     {
-        public event Action MadeMoveEvent;
         public event Action MadeFoldEvent;
-        public event Action MadeAllInEvent;
         public string Name { get; private set; }
         public Hand Hand { get; private set; }
         public Combination Combination { get; private set; }
@@ -37,7 +35,14 @@ namespace PokerEngine
             Hand = _dealer.GetHand();
             IsInDeal = true;
             Combination = CombinationCreator.Create(Hand);
-            _dealer.PutNewCardEvent += UpdateCombination;
+            _dealer.PutNewCardsEvent += UpdateCombination;
+        }
+        internal void TakeNewHandFromDealer(Hand hand)
+        {
+            Hand = hand;
+            IsInDeal = true;
+            Combination = CombinationCreator.Create(Hand);
+            _dealer.PutNewCardsEvent += UpdateCombination;
         }
 
         private void UpdateCombination()
@@ -51,7 +56,7 @@ namespace PokerEngine
         internal void Fold()
         {
             Hand = null;// Hand.Empty;
-            _dealer.PutNewCardEvent -= UpdateCombination;
+            _dealer.PutNewCardsEvent -= UpdateCombination;
             IsInDeal = false;
             MadeFoldEvent?.Invoke();
         }
@@ -70,10 +75,10 @@ namespace PokerEngine
         {
             CheckNonNegative(_dealer.PlayerChips);
             Stack -= _dealer.PlayerChips;
-            if (Stack == 0)
+            /*if (Stack == 0)
             {
                 MadeAllInEvent?.Invoke();
-            }
+            }*/
         }
 
         internal void TakeChipsFromDealer()
@@ -124,11 +129,11 @@ namespace PokerEngine
         }
 
 
-        internal void MakeMove(Move move)
+        /*internal void MakeMove(Move move)
         {
             move.Make(this);
             MadeMoveEvent?.Invoke();
-        }
+        }*/
 
 
 

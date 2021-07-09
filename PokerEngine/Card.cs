@@ -4,9 +4,8 @@ using System.Text;
 
 namespace PokerEngine
 {
-    public enum Rank : byte //todo remove public 
+    public enum Rank : byte 
     {
-        //Empty = 0,
         Two = 2,
         Three = 3,
         Four = 4,
@@ -22,9 +21,8 @@ namespace PokerEngine
         Ace = 14
     }
 
-    public enum Suit : byte //todo remove public 
+    public enum Suit : byte 
     {
-        //Empty = 0,
         Hearts = 1,
         Diamonds,
         Clubs,
@@ -32,11 +30,10 @@ namespace PokerEngine
     }
     public struct Card
     {
-        //internal static readonly Card Empty = new Card(Rank.Empty, Suit.Empty);
         internal Rank Rank { get; private set; }
         internal Suit Suit { get; private set; }
 
-        public Card(Rank rank, Suit suit) //todo make internal
+        public Card(Rank rank, Suit suit) 
         {
             Rank = rank;
             Suit = suit;

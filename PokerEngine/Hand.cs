@@ -11,7 +11,7 @@ namespace PokerEngine
         internal Card FirstCard { get; private set; }
         internal Card SecondCard { get; private set; }
 
-        internal Hand(Card first, Card second)
+        public Hand(Card first, Card second)
         {
             FirstCard = first;
             SecondCard = second;
