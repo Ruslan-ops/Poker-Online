@@ -1,11 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using PokerEngine;
+using System.Text.Json;
+
 
 namespace ConsoleUI
 {
     class Program
     {
+        enum Enum
+        {
+            first = 1,
+            second = 2
+        }
+
         static string CardListToString(IEnumerable<Card> cards)
         {
             string result = "|";
@@ -16,9 +24,31 @@ namespace ConsoleUI
             return result;
         }
 
+        struct CombinationInfo
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
+            public List<CardInfo> Cards { get; set; }
+            public Enum Enum { get; set; }
+
+           
+        }
+
+        struct CardInfo
+        {
+            public Rank Rank { get; set; }
+            public Suit Suit { get; set; }
+            public CardInfo(Rank rank, Suit suit)
+            {
+                Rank = rank;
+                Suit = suit;
+            }
+
+        }
+
         static void Main(string[] args)
         {
-            Table table = new Table(5, 3000, 100);
+            Table table = new Table(5, 3000, 4000, 100);
             for (int i = 0; i < 3; i++)
             {
                 table.AddPlayer("Shark" + Convert.ToString(i));
@@ -45,6 +75,25 @@ namespace ConsoleUI
 
             Combination comb = Combination.FromCards(new List<Card> { new Card( Rank.King, Suit.Hearts ), new Card(Rank.Queen, Suit.Spades ), new Card(Rank.Nine, Suit.Hearts),
                                                                           new Card(Rank.Four, Suit.Clubs ), new Card(Rank.Eight, Suit.Diamonds ), new Card(Rank.Two, Suit.Hearts), new Card(Rank.Three, Suit.Diamonds ) });
+
+
+
+
+            /*Hand hand = new Hand(new Card(Rank.Ace, Suit.Hearts), new Card(Rank.Five, Suit.Spades));
+            string json = JsonSerializer.Serialize<Combination>(comb);
+            Console.WriteLine(json);
+            Combination restoredComb = JsonSerializer.Deserialize<Combination>(json);
+            Console.WriteLine(restoredComb.Type);*/
+
+            CombinationInfo p = new CombinationInfo();
+            p.Cards = new List<CardInfo> { new CardInfo( Rank.King, Suit.Hearts ), new CardInfo(Rank.Queen, Suit.Spades ), new CardInfo(Rank.Nine, Suit.Hearts),
+                                                                          new CardInfo(Rank.Four, Suit.Clubs ), new CardInfo(Rank.Eight, Suit.Diamonds ), new CardInfo(Rank.Two, Suit.Hearts), new CardInfo(Rank.Three, Suit.Diamonds )};
+            string json = JsonSerializer.Serialize<CombinationInfo>(p);
+            Console.WriteLine(json);
+            CombinationInfo restoredP = JsonSerializer.Deserialize<CombinationInfo>(json);
+            Console.WriteLine(restoredP.Cards);
+            Console.WriteLine(json.Length);
+
             /*Console.WriteLine(comb.Type);
             foreach (Card card in comb)
             {

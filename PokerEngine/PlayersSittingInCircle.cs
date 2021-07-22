@@ -2,24 +2,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace PokerEngine
 {
     class PlayersSittingInCircle : IEnumerable<Player>
     {
-        //public event Action PlayerMadeMoveEvent;
         public event Action PlayerMadeFoldEvent;
-        //public event Action PlayerMadeAllInEvent;
-
         public int Amount => _players.Size;
         public readonly int SeatsAmount;
         private const int MinPlayersAmount = 2;
         private const int MaxPlayersAmount = 10;
         private Ring<Player> _players;
         private readonly List<Seat> _seats;
-
-
 
         public PlayersSittingInCircle(int seatsAmount)
         {
@@ -32,7 +26,7 @@ namespace PokerEngine
             _seats = new List<Seat>(SeatsAmount);
             for (int i = 0; i < SeatsAmount; i++)
             {
-                _seats.Add(new Seat());
+                _seats.Add(new Seat(i));
             }
         }
 
@@ -49,8 +43,6 @@ namespace PokerEngine
             }
             _players.Insert(indexInPlayers, player);
             player.MadeFoldEvent += PlayerMadeFoldEvent;
-
-
         }
 
         public void Add(Player player, int seatNumber)
@@ -69,6 +61,7 @@ namespace PokerEngine
                 throw new Exception("This seat is occupied");
             }
         }
+
         public void Add(Player player)
         {
             if (Amount < SeatsAmount)
@@ -87,7 +80,6 @@ namespace PokerEngine
                 throw new Exception("All seats are occupied");
             }
         }
-
 
         private Seat GetSeatWith(Player player)
         {
@@ -157,9 +149,9 @@ namespace PokerEngine
                 _players[index] = value;
             }
         }
-        public Queue<Player> ToQueue(Player firstPlayer, Func<Player, bool> predicate)
+        public List<Player> ToList(Player firstPlayer, Func<Player, bool> predicate)
         {
-            return _players.ToQueue(firstPlayer, predicate);
+            return _players.ToList(firstPlayer, predicate);
         }
 
         public Player GetButton()
@@ -178,7 +170,6 @@ namespace PokerEngine
                 return _players[(int)Position.SmallBlind];
             }
         }
-
         public Player GetBigBlind()
         {
             if (Amount == 2)
@@ -191,24 +182,19 @@ namespace PokerEngine
             }
         }
 
-
         public Player GetNextAfter(Player current)
         {
             return _players.GetNextAfter(current);
         }
+
         public void AssignNewButton()
         {
             _players.Spin();
         }
 
-
-
         public IEnumerator<Player> GetEnumerator()
         {
-            foreach (Player player in _players)
-            {
-                yield return player;
-            }
+            return _players.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

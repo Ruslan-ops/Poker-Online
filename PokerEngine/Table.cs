@@ -15,7 +15,8 @@ namespace PokerEngine
         public event Action NewRoundStartedEvent;
         public event Action<IEnumerable<Player>> ShowDownEvent;
         public event Action<IEnumerable<WonPotInfo>> WinnersGotPotEvent;
-        public readonly int StartStack;
+        public readonly int MinStartStack;
+        public readonly int MaxStartStack;
         public readonly int MaxPlayersAmount;
         public bool IsDeal { get; private set; }
         public int CurrentMaxBetSize => _dealer.CurrentMaxBetSize;
@@ -33,10 +34,15 @@ namespace PokerEngine
         private PlayersSittingInCircle _playersCircle;
         private MoveOrder _moveOrderAtRound;
 
-        public Table(int maxPlayersAmount, int startStack, int smallBlindSize)
+        public Table(int maxPlayersAmount, int minStartStack, int maxStartStack, int smallBlindSize)
         {
+            if(maxPlayersAmount < 2 || minStartStack > maxStartStack || minStartStack <= 0 || smallBlindSize <= 0)
+            {
+                throw new ArgumentException("Invalid arguments for creating the table");
+            }
             MaxPlayersAmount = maxPlayersAmount;
-            StartStack = startStack;
+            MinStartStack = minStartStack;
+            MaxStartStack = maxStartStack;
             IsDeal = false;
             _dealer = new Dealer(smallBlindSize);
             _currentRound = new Preflop();
@@ -133,7 +139,6 @@ namespace PokerEngine
             }
             ShowDownEvent?.Invoke(playersInShowDown);
             WinnersGotPotEvent?.Invoke(awards);
-
         }
 
         public int GetBetSizeOf(Player player)
@@ -171,20 +176,40 @@ namespace PokerEngine
 
         public void AddPlayer(string playerName)
         {
-            Player player = new Player(StartStack, _dealer, playerName);
-            _playersCircle.Add(player);
+            AddPlayer(playerName, MinStartStack);
         }
 
-        public void AddPlayer(string playerName, int seatNumber)
+        public void AddPlayer(string playerName, int stackSize)
         {
-            Player player = new Player(StartStack, _dealer, playerName);
-            _playersCircle.Add(player, seatNumber);
+            if(stackSize >= MinStartStack && stackSize <= MaxStartStack)
+            {
+                Player player = new Player(stackSize, _dealer, playerName);
+                _playersCircle.Add(player);
+            }
+            else
+            {
+                throw new ArgumentException($"Start stack must be from {MinStartStack} to {MaxStartStack}");
+            }
         }
 
-        internal void DeletePlayer(string playerName)
+        public void AddPlayer(string playerName, int stackSize, int seatNumber)
+        {
+            if (stackSize >= MinStartStack && stackSize <= MaxStartStack)
+            {
+                Player player = new Player(stackSize, _dealer, playerName);
+                _playersCircle.Add(player, seatNumber);
+            }
+            else
+            {
+                throw new ArgumentException($"Start stack must be from {MinStartStack} to {MaxStartStack}");
+            }
+        }
+
+        public void DeletePlayer(string playerName)
         {
             Player playerToDelete = _playersCircle.Get(playerName);
             playerToDelete.Fold();
+            _moveOrderAtRound.Delete(playerToDelete);
             _playersCircle.Delete(playerName);
         }
 
@@ -216,7 +241,6 @@ namespace PokerEngine
                 throw new Exception("It's not a turn of this player");
             }
         }
-
 
         public void TakeBreak()
         {

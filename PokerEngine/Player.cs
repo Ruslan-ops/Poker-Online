@@ -23,7 +23,7 @@ namespace PokerEngine
 
         internal Player(int stack, Dealer dealer, string name)
         {
-            Hand = null;// Hand.Empty;
+            Hand = null;
             _dealer = dealer;
             Name = name;
             Stack = stack;
@@ -55,12 +55,11 @@ namespace PokerEngine
 
         internal void Fold()
         {
-            Hand = null;// Hand.Empty;
+            Hand = null;
             _dealer.PutNewCardsEvent -= UpdateCombination;
             IsInDeal = false;
             MadeFoldEvent?.Invoke();
         }
-
 
         private void CheckNonNegative(int chipsAmount)
         {
@@ -70,15 +69,11 @@ namespace PokerEngine
             }
         }
 
-
         internal void GiveChipsToDealer()
         {
             CheckNonNegative(_dealer.PlayerChips);
             Stack -= _dealer.PlayerChips;
-            /*if (Stack == 0)
-            {
-                MadeAllInEvent?.Invoke();
-            }*/
+           
         }
 
         internal void TakeChipsFromDealer()
@@ -127,15 +122,6 @@ namespace PokerEngine
             _dealer.PutChipsInPotFrom(this, betSize);
 
         }
-
-
-        /*internal void MakeMove(Move move)
-        {
-            move.Make(this);
-            MadeMoveEvent?.Invoke();
-        }*/
-
-
 
         public void ShowHand()
         {

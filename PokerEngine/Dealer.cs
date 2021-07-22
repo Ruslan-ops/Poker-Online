@@ -64,7 +64,7 @@ namespace PokerEngine
             _betsLogAtRound.Clear();
         }
 
-        public void TakeBackAllCards()
+        private void TakeBackAllCards()
         {
             _board.Clear();
             _deck.Reset();
@@ -131,12 +131,9 @@ namespace PokerEngine
             }
         }
 
-
         public int GetBetSizeInRoundOf(Player player)
         {
             return _betsLogAtRound.GetBetSizeInRoundOf(player);
         }
-
-       
     }
 }
