@@ -4,9 +4,10 @@ using System.Text;
 
 namespace PokerEngine
 {
-    public class Call : Move
+    public class Call : BettingMove
     {
         public override MoveAlias Alias => MoveAlias.Call;
+
 
         public Call()
         {
@@ -14,7 +15,7 @@ namespace PokerEngine
 
         internal override void Make(Player player)
         {
-            player.Call();
+            BetSize = player.Call();
         }
     }
 }

@@ -15,7 +15,8 @@ namespace PokerEngine
         public event Action NewRoundStartedEvent;
         public event Action<IEnumerable<Player>> ShowDownEvent;
         public event Action<IEnumerable<WonPotInfo>> WinnersGotPotEvent;
-        public readonly int StartStack;
+        public readonly int MinStartStack;
+        public readonly int MaxStartStack;
         public readonly int MaxPlayersAmount;
         public bool IsDeal { get; private set; }
         public int CurrentMaxBetSize => _dealer.CurrentMaxBetSize;
@@ -28,15 +29,21 @@ namespace PokerEngine
         public Player SmallBlind => _playersCircle.GetSmallBlind();
         public Player Button => _playersCircle.GetButton();
         public RoundType CurrentRound => _currentRound != null ? _currentRound.RoundType : throw new InvalidOperationException("Deal hasn't started yet");
+        public IEnumerable<Seat> Seats { get; set; }
         private Round _currentRound;
         private Dealer _dealer;
         private PlayersSittingInCircle _playersCircle;
         private MoveOrder _moveOrderAtRound;
 
-        public Table(int maxPlayersAmount, int startStack, int smallBlindSize)
+        public Table(int maxPlayersAmount, int minStartStack, int maxStartStack, int smallBlindSize)
         {
+            if(maxPlayersAmount < 2 || minStartStack > maxStartStack || minStartStack <= 0 || smallBlindSize <= 0)
+            {
+                throw new ArgumentException("Invalid arguments for creating the table");
+            }
             MaxPlayersAmount = maxPlayersAmount;
-            StartStack = startStack;
+            MinStartStack = minStartStack;
+            MaxStartStack = maxStartStack;
             IsDeal = false;
             _dealer = new Dealer(smallBlindSize);
             _currentRound = new Preflop();
@@ -73,14 +80,30 @@ namespace PokerEngine
 
         public void StartNewDeal()
         {
-            _currentRound = new Preflop();
-            _dealer.Reset();
-            DealCardsToPlayers();
-            _playersCircle.AssignNewButton();
-            _moveOrderAtRound.Update(_currentRound);
-            BetBlinds();
-            IsDeal = true;
-            DealStartedEvent?.Invoke();
+            if(_playersCircle.Where(p => p.HasChips).Count() > 1)
+            {
+                _currentRound = new Preflop();
+                _dealer.Reset();
+                DealCardsToPlayers();
+                _playersCircle.AssignNewButton();
+                _moveOrderAtRound.Update(_currentRound);
+                BetBlinds();
+                IsDeal = true;
+                DealStartedEvent?.Invoke();
+            }
+            else
+            {
+                throw new Exception("There are too few players to start new deal");
+            }
+        }
+
+        public List<MoveAlias> GetAllowedMovesFor(Player player)
+        {
+            if(_playersCircle.Contains(player) && player.IsInDeal)
+            {
+                return _dealer.GetAllowedMovesFor(player);
+            }
+            throw new Exception("No such player in the deal");
         }
 
         private void BetBlinds()
@@ -133,7 +156,6 @@ namespace PokerEngine
             }
             ShowDownEvent?.Invoke(playersInShowDown);
             WinnersGotPotEvent?.Invoke(awards);
-
         }
 
         public int GetBetSizeOf(Player player)
@@ -144,6 +166,16 @@ namespace PokerEngine
         public Player GetPlayer(int seatNumber)
         {
             return _playersCircle.Get(seatNumber);
+        }
+
+        public Player GetPlayer(string playerName)
+        {
+            return _playersCircle.Get(playerName);
+        }
+
+        public Seat GetSeatOf(string playerName)
+        {
+            return _playersCircle.Seats.Single(seat => seat.Player == GetPlayer(playerName));
         }
 
         private void DealCardsToPlayers()
@@ -159,7 +191,8 @@ namespace PokerEngine
         {
             Player firstAtRound = _moveOrderAtRound.FirstPlayerAtCurrentRound;
             _moveOrderAtRound.Update(firstAtRound);
-            if (_moveOrderAtRound.IsEmpty || _moveOrderAtRound.Count == 1)
+            bool isEverybodyMadeAllIn = _moveOrderAtRound.IsEmpty || _moveOrderAtRound.Count == 1 && GetBetSizeOf(_moveOrderAtRound.GetWhoseMove()) == CurrentMaxBetSize;
+            if (isEverybodyMadeAllIn)
             {
                 SkipRoundsToShowDown();
             }
@@ -171,20 +204,41 @@ namespace PokerEngine
 
         public void AddPlayer(string playerName)
         {
-            Player player = new Player(StartStack, _dealer, playerName);
-            _playersCircle.Add(player);
+            AddPlayer(playerName, MinStartStack);
         }
 
-        public void AddPlayer(string playerName, int seatNumber)
+        public void AddPlayer(string playerName, int stackSize)
         {
-            Player player = new Player(StartStack, _dealer, playerName);
-            _playersCircle.Add(player, seatNumber);
+            if(stackSize >= MinStartStack && stackSize <= MaxStartStack)
+            {
+                
+                Player player = new Player(stackSize, _dealer, playerName);
+                _playersCircle.Add(player);
+            }
+            else
+            {
+                throw new ArgumentException($"Start stack must be from {MinStartStack} to {MaxStartStack}");
+            }
         }
 
-        internal void DeletePlayer(string playerName)
+        public void AddPlayer(string playerName, int stackSize, int seatNumber)
+        {
+            if (stackSize >= MinStartStack && stackSize <= MaxStartStack)
+            {
+                Player player = new Player(stackSize, _dealer, playerName);
+                _playersCircle.Add(player, seatNumber);
+            }
+            else
+            {
+                throw new ArgumentException($"Start stack must be from {MinStartStack} to {MaxStartStack}");
+            }
+        }
+
+        public void DeletePlayer(string playerName)
         {
             Player playerToDelete = _playersCircle.Get(playerName);
             playerToDelete.Fold();
+            _moveOrderAtRound.Delete(playerToDelete);
             _playersCircle.Delete(playerName);
         }
 
@@ -216,7 +270,6 @@ namespace PokerEngine
                 throw new Exception("It's not a turn of this player");
             }
         }
-
 
         public void TakeBreak()
         {

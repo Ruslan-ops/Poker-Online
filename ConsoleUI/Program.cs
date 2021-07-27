@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using PokerEngine;
+using System.Text.Json;
+
 
 namespace ConsoleUI
 {
     class Program
     {
+
         static string CardListToString(IEnumerable<Card> cards)
         {
             string result = "|";
@@ -16,12 +19,13 @@ namespace ConsoleUI
             return result;
         }
 
+
         static void Main(string[] args)
         {
-            Table table = new Table(5, 3000, 100);
+            Table table = new Table(5, 3000, 4000, 100);
             for (int i = 0; i < 3; i++)
             {
-                table.AddPlayer("Shark" + Convert.ToString(i));
+                table.AddPlayer("Player" + Convert.ToString(i));
             }
             table.ShowDownEvent += (players) =>
             {
@@ -32,8 +36,20 @@ namespace ConsoleUI
                 }
             };
 
+            table.DealFinishedEvent += () =>
+            {
+                Console.WriteLine("Deal finished");
+            };
+            table.DealStartedEvent += () =>
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("***NEW DEAL STARTED***");
+                Console.ResetColor();
+            };
+
             table.WinnersGotPotEvent += (awards) =>
             {
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("________________________");
                 foreach (var award in awards)
                 {
@@ -41,76 +57,131 @@ namespace ConsoleUI
                     int wonChips = award.WonPotSize;
                     Console.WriteLine($"Winner {winner.Name} has {winner.Combination.Type} and gets {wonChips}");
                 }
-            };
-
-            Combination comb = Combination.FromCards(new List<Card> { new Card( Rank.King, Suit.Hearts ), new Card(Rank.Queen, Suit.Spades ), new Card(Rank.Nine, Suit.Hearts),
-                                                                          new Card(Rank.Four, Suit.Clubs ), new Card(Rank.Eight, Suit.Diamonds ), new Card(Rank.Two, Suit.Hearts), new Card(Rank.Three, Suit.Diamonds ) });
-            /*Console.WriteLine(comb.Type);
-            foreach (Card card in comb)
-            {
-                Console.WriteLine(card);
-            }*/
-            /*Enum en = (Enum)3;
-            List<int> li = new List<int>();
-            li.Clear();
-            Console.WriteLine(en);*/
+                Console.ResetColor();
+            };            
             while (true)
             {
-
-                string choice = "1";
-                do
+                try
                 {
-                    if (!table.IsDeal)
+                    int choice;
+                    do
                     {
-                        table.StartNewDeal();
-                    }
-                    Player player = table.GetWhoseMove();
+                        if (!table.IsDeal)
+                        {
+                            MakeRebuys(table.GetPlayers());
+                            table.StartNewDeal();
+                        }
+                        Player player = table.GetWhoseMove();
+                        List<MoveAlias> allowedMoves = table.GetAllowedMovesFor(player);
+                        PrintRound(table, player);
+                        PrintAllowedMoves(allowedMoves);
+                        choice = Convert.ToInt32(Console.ReadLine());
+                        if(choice > 0 && choice < 5)
+                        {
 
-                    Console.WriteLine("________________________");
-                    Console.WriteLine(table.CurrentRound.ToString().ToUpper());
-                    string boardCards = CardListToString(table.GetBoardCards());
-                    Console.WriteLine($"Board: {boardCards}");
-                    Console.WriteLine($"{player.Name}, It's your turn!");
-                    Console.WriteLine($"Your hand: {player.Hand}");
-                    Console.WriteLine($"Your combination: {player.Combination}");
-                    Console.WriteLine($"Stack: {player.Stack} chips | Pot: {table.PotSize}");
-                    Console.WriteLine($"Current max bet size: {table.CurrentMaxBetSize} | To bet: {table.CurrentMaxBetSize - table.GetBetSizeOf(player)}");
-                    choice = Console.ReadLine();
-                    
-                    switch (choice)
-                    {
-                        case "bet":
-                            Console.WriteLine("How much you wanna bet?");
-                            int betSize = Convert.ToInt32(Console.ReadLine());
-                            table.MakeMove(player, new Bet(betSize));
-                            break;
-                        case "raise":
-                            Console.WriteLine("How much you wanna raise?");
-                            double coef = Convert.ToDouble(Console.ReadLine());
-                            table.MakeMove(player, new Raise(coef));
-                            break;
-                        case "fold":
-                            table.MakeMove(player, new Fold());
-                            break;
-                        case "check":
-                            table.MakeMove(player, new Check());
-                            break;
-                        case "call":
-                            table.MakeMove(player, new Call());
-                            break;
-                        case "allin":
-                            table.MakeMove(player, new AllIn());
-                            break;
-                        default:
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("Undefined action");
-                            Console.ResetColor();
-                            break;
+                            Move move = MakeMove(allowedMoves[choice - 1], table, player);
+                            PrintMoveMessage(move, player);
+                        }
+                        else
+                        {
+                            throw new Exception("Undefined action");
+                        }
                     }
-                    
+                    while (true);
                 }
-                while (choice != "0");
+                catch(Exception ex)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(ex.Message);
+                    Console.ResetColor();
+                }
+            }
+
+
+        }
+
+        private static void MakeRebuys(IEnumerable<Player> players)
+        {
+            foreach(var player in players)
+            {
+                if(!player.HasChips)
+                {
+                    player.AddChips(3000);
+                }
             }
         }
+
+        private static void PrintMoveMessage(Move move, Player player)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"{player.Name} made {move.Alias.ToString().ToLower()}");
+            string betSizeMessage = string.Empty;
+            if(move is BettingMove bettingMove)
+            {
+                betSizeMessage = $" {bettingMove.BetSize} chips";
+            }
+            Console.WriteLine(betSizeMessage);
+            Console.ResetColor();
+        }
+
+        private static void PrintAllowedMoves(List<MoveAlias> allowedMoves)
+        {
+            Console.WriteLine("Choose move");
+            for(int i = 1; i <= allowedMoves.Count; i++)
+            {
+                Console.WriteLine($"{i}) {allowedMoves[i-1].ToString()}");
+            }
+            Console.Write("->");
+        }
+
+        static void PrintRound(Table table, Player player)
+        {
+            Console.WriteLine("________________________");
+            Console.WriteLine(table.CurrentRound.ToString().ToUpper());
+            string boardCards = CardListToString(table.GetBoardCards());
+            Console.WriteLine($"Board: {boardCards}");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"{player.Name}");
+            Console.ResetColor();
+            Console.WriteLine(", It's your turn!");
+            Console.WriteLine($"Your hand: {player.Hand}");
+            Console.WriteLine($"Your combination: {player.Combination}");
+            Console.WriteLine($"Stack: {player.Stack} chips | Pot: {table.PotSize}");
+            Console.WriteLine($"Current max bet size: {table.CurrentMaxBetSize} | To bet: {table.CurrentMaxBetSize - table.GetBetSizeOf(player)}");
+        }
+        static Move MakeMove(MoveAlias moveAlias, Table table, Player player)
+        {
+            Move move;
+            switch (moveAlias)
+            {
+                case MoveAlias.Bet:
+                    Console.WriteLine("How much you wanna bet?");
+                    int betSize = Convert.ToInt32(Console.ReadLine());
+                    move = new Bet(betSize);
+                    break;
+                case MoveAlias.Raise:
+                    Console.WriteLine("How many times do you want to raise current bet?");
+                    double coef = Convert.ToDouble(Console.ReadLine());
+                    move = new Raise(coef);
+                    break;
+                case MoveAlias.Fold:
+                    move = new Fold();
+                    break;
+                case MoveAlias.Check:
+                    move = new Check();
+                    break;
+                case MoveAlias.Call:
+                    move = new Call();
+                    break;
+                case MoveAlias.AllIn:
+                    move = new AllIn();
+                    break;
+                default:
+                    throw new Exception("Undefined action");
+            }
+            table.MakeMove(player, move);
+            return move;
+        }
     }   
+
 }

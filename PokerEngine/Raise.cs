@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PokerEngine
 {
-    public class Raise : Move
+    public class Raise : BettingMove
     {
         public override MoveAlias Alias => MoveAlias.Raise;
 
@@ -21,7 +21,7 @@ namespace PokerEngine
 
         internal override void Make(Player player)
         {
-            player.Raise(_coef);
+            BetSize = player.Raise(_coef);
         }
     }
 }

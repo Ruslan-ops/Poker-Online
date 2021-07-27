@@ -27,7 +27,6 @@ namespace PokerEngine
         public int Size { get; private set; }
         private Node<T> _head;
 
-
         public IEnumerator<T> GetEnumerator()
         {
             if (IsEmpty)
@@ -130,19 +129,19 @@ namespace PokerEngine
             return node.Next.Item;
         }
 
-        public Queue<T> ToQueue(T firstItem, Func<T, bool> predicate)
+        public List<T> ToList(T firstItem, Func<T, bool> predicate)
         {
             Node<T> current = FindNodeWith(firstItem);
-            Queue<T> queue = new Queue<T>();
+            List<T> list = new List<T>();
             for (int i = 0; i < Size; i++)
             {
                 if (predicate(current.Item))
                 {
-                    queue.Enqueue(current.Item);
+                    list.Add(current.Item);
                 }
                 current = current.Next;
             }
-            return queue;
+            return list;
         }
 
         public void Spin()

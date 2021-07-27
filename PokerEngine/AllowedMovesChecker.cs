@@ -9,7 +9,6 @@ namespace PokerEngine
         private const int MovesCount = 4;
         private BetsLog _betsLog;
 
-
         public AllowedMovesChecker(BetsLog betsLogAtRound)
         {
             _betsLog = betsLogAtRound;

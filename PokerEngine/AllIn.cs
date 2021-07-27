@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PokerEngine
 {
-    public class AllIn : Move
+    public class AllIn : BettingMove
     {
         public override MoveAlias Alias => MoveAlias.AllIn;
 
@@ -13,7 +13,7 @@ namespace PokerEngine
         }
         internal override void Make(Player player)
         {
-            player.AllIn();
+            BetSize = player.AllIn();
         }
     }
 }

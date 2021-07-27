@@ -10,12 +10,12 @@ namespace PokerEngine
         public bool IsEmpty => _playersOrder.Count == 0;
         public int Count => _playersOrder.Count;
         public Player FirstPlayerAtCurrentRound { get; private set; }
-        private Queue<Player> _playersOrder;
+        private List<Player> _playersOrder;
         private PlayersSittingInCircle _players;
 
         public MoveOrder(PlayersSittingInCircle players)
         {
-            _playersOrder = new Queue<Player>();
+            _playersOrder = new List<Player>();
             _players = players;
         }
 
@@ -27,8 +27,9 @@ namespace PokerEngine
 
         public void Update(Player firstPlayer)
         {
-            _playersOrder = _players.ToQueue(firstPlayer, p => (p.IsInDeal) && p.HasChips);
+            _playersOrder = _players.ToList(firstPlayer, p => (p.IsInDeal) && p.HasChips);
         }
+
         private Player FindFirstPlayerAtRound(Round newRound)
         {
             Player firstPlayer;
@@ -47,7 +48,7 @@ namespace PokerEngine
 
         public Player GetWhoseMove()
         {
-            return _playersOrder.Peek();
+            return _playersOrder[0];
         }
 
         public void Clear()
@@ -55,9 +56,14 @@ namespace PokerEngine
             _playersOrder.Clear();
         }
 
+        public void Delete(Player player)
+        {
+            _playersOrder.Remove(player);
+        }
+
         public void GiveMoveToNextPlayer()
         {
-            _playersOrder.Dequeue();
+            _playersOrder.RemoveAt(0);
             if (IsEmpty)
             {
                 PlayersRanOutEvent?.Invoke();

@@ -23,7 +23,7 @@ namespace PokerEngine
 
         internal Player(int stack, Dealer dealer, string name)
         {
-            Hand = null;// Hand.Empty;
+            Hand = null;
             _dealer = dealer;
             Name = name;
             Stack = stack;
@@ -55,12 +55,11 @@ namespace PokerEngine
 
         internal void Fold()
         {
-            Hand = null;// Hand.Empty;
+            Hand = null;
             _dealer.PutNewCardsEvent -= UpdateCombination;
             IsInDeal = false;
             MadeFoldEvent?.Invoke();
         }
-
 
         private void CheckNonNegative(int chipsAmount)
         {
@@ -70,15 +69,11 @@ namespace PokerEngine
             }
         }
 
-
         internal void GiveChipsToDealer()
         {
             CheckNonNegative(_dealer.PlayerChips);
             Stack -= _dealer.PlayerChips;
-            /*if (Stack == 0)
-            {
-                MadeAllInEvent?.Invoke();
-            }*/
+           
         }
 
         internal void TakeChipsFromDealer()
@@ -110,36 +105,30 @@ namespace PokerEngine
         }
 
 
-        internal void AllIn()
+        internal int AllIn()
         {
-            _dealer.PutChipsInPotFrom(this, Stack);
+            int betSize = Stack;
+            _dealer.PutChipsInPotFrom(this, betSize);
+            return betSize;
         }
 
-        internal void Call()
+        internal int Call()
         {
             int callSize = _dealer.CurrentMaxBetSize - _dealer.GetBetSizeInRoundOf(this);
             _dealer.PutChipsInPotFrom(this, callSize);
+            return callSize;
         }
 
-        internal void Raise(double coef)
+        internal int Raise(double coef)
         {
             int betSize = (int)(coef * _dealer.CurrentMaxBetSize);
             _dealer.PutChipsInPotFrom(this, betSize);
-
+            return betSize;
         }
 
-
-        /*internal void MakeMove(Move move)
+        public void AddChips(int chips)
         {
-            move.Make(this);
-            MadeMoveEvent?.Invoke();
-        }*/
-
-
-
-        public void ShowHand()
-        {
-            Hand.Show();
+            Stack += chips;
         }
     }
 }

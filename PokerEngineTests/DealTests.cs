@@ -17,10 +17,10 @@ namespace PokerEngineTests
         [SetUp]
         public void Setup()
         {
-            table = new Table(5, 10000, 100);
-            table.AddPlayer("player_1", 1);
-            table.AddPlayer("player_2", 3);
-            table.AddPlayer("player_3", 4);
+            table = new Table(5, 10000, 10000, 100);
+            table.AddPlayer("player_1", 10000, 1);
+            table.AddPlayer("player_2", 10000, 3);
+            table.AddPlayer("player_3", 10000, 4);
             first = table.GetPlayer(1);
             second = table.GetPlayer(3);
             third = table.GetPlayer(4);

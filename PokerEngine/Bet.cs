@@ -4,19 +4,18 @@ using System.Text;
 
 namespace PokerEngine
 {
-    public class Bet : Move
+    public class Bet : BettingMove
     {
-        public readonly int Size;
         public override MoveAlias Alias => MoveAlias.Bet;
 
         public Bet(int size)
         {
-            Size = size;
+            BetSize = size;
         }
 
         internal override void Make(Player player)
         {
-            player.Bet(Size);
+            player.Bet(BetSize);
         }
     }
 }
