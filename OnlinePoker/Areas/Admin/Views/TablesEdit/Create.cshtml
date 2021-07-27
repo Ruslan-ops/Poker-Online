@@ -1,0 +1,32 @@
+﻿@model TableModel
+<div>
+    <h1>Создайте новый стол</h1>
+    <div>
+        <form asp-area="Admin" asp-controller="TablesEdit" asp-action="Create" method="post" asp-route-returnUrl="">
+            <div asp-validation-summary="All"></div>
+            <div>
+                <label asp-for="SmallBlindSize"></label>
+                <input asp-for="SmallBlindSize" />
+                <span asp-validation-for="SmallBlindSize"></span>
+            </div>
+            <div>
+                <label asp-for="MaxStartStack"></label>
+                <input asp-for="MaxStartStack" />
+                <span asp-validation-for="MaxStartStack"></span>
+            </div>
+            <div>
+                <label asp-for="MinStartStack"></label>
+                <input asp-for="MinStartStack" />
+                <span asp-validation-for="MinStartStack"></span>
+            </div>
+            <div>
+                <label asp-for="MaxPlayersAmount"></label>
+                <input asp-for="MaxPlayersAmount" />
+                <span asp-validation-for="MaxPlayersAmount"></span>
+            </div>
+            <div>
+                <input type="submit" value="Создать" />
+            </div>
+        </form>
+    </div>
+</div>

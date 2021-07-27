@@ -1,0 +1,36 @@
+﻿@model IEnumerable<TableModel>
+@{
+    string strTitle = "Панель администратора";
+    ViewBag.Title = strTitle;
+}
+
+<div>
+    <h1>@strTitle</h1>
+    <div>
+        <div class="div-box">
+            <a asp-area="Admin" asp-controller="TablesEdit" asp-action="Create" asp-route-id="">Создать новый стол</a>
+        </div>
+        <h3>Столы</h3>
+        @if (Model.Any())
+        {
+            <div>
+                @foreach (TableModel table in Model)
+                {
+                    <form style="display: inline-block;" id="form-@table.Id" asp-area="Admin" asp-controller="TablesEdit" asp-action="Delete" method="post">
+                        <input type="hidden" name="id" value="@table.Id">
+                        <a href="#" onclick="document.getElementById('form-@table.Id').submit();">Удалить</a>
+                    </form>
+                    <a href="/gamey?tableId=@table.Id">
+                        @($"{table.SmallBlindSize}/{table.BigBlindSize} {table.Id} {table.PlalyersAmount}/{table.MaxPlayersAmount}")
+                    </a>
+                    <br />
+                }
+            </div>
+        }
+    </div>
+    <div class="div-box">
+        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+            <input type="submit" value="Выйти" />
+        </form>
+    </div>
+</div>
