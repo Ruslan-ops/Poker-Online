@@ -33,13 +33,13 @@ namespace OnlinePoker.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 IdentityPokerUser user = await _userManager.FindByNameAsync(model.UserName);
-                if(user != null)
+                if (user != null)
                 {
                     Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
-                    if(result.Succeeded)
+                    if (result.Succeeded)
                     {
                         return Redirect("/admin");
                     }
@@ -56,6 +56,6 @@ namespace OnlinePoker.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-       
+
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System;using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +10,6 @@ namespace OnlinePoker.Models
 {
     public class PokerBusinessLogic
     {
-        public event Action<PokerEngine.Table, Player> NewPlayerWasAdded;
         private readonly Dictionary<Guid, PokerEngine.Table> _tables;
 
         public PokerBusinessLogic()

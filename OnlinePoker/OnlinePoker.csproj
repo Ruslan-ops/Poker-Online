@@ -9,7 +9,6 @@
     <Folder Include="Controllers\" />
     <Folder Include="Hubs\" />
     <Folder Include="Views\" />
-    <Folder Include="wwwroot\" />
   </ItemGroup>
 
   <ItemGroup>

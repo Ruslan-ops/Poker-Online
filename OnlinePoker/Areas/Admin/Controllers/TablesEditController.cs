@@ -29,7 +29,7 @@ namespace OnlinePoker.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(TableModel model)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 await _pokerLogic.CreateTableAsync(model, _appDbContext);
                 RedirectToAction(nameof(HomeController.Index), nameof(HomeController)); //нужно nameof(HomeController).CutController();

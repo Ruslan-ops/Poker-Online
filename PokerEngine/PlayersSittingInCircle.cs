@@ -13,7 +13,7 @@ namespace PokerEngine
         private const int MinPlayersAmount = 2;
         private const int MaxPlayersAmount = 10;
         private Ring<Player> _players;
-        private readonly List<Seat> _seats;
+        public readonly List<Seat> Seats;
 
         public PlayersSittingInCircle(int seatsAmount)
         {
@@ -23,20 +23,24 @@ namespace PokerEngine
             }
             SeatsAmount = seatsAmount;
             _players = new Ring<Player>();
-            _seats = new List<Seat>(SeatsAmount);
+            Seats = new List<Seat>(SeatsAmount);
             for (int i = 0; i < SeatsAmount; i++)
             {
-                _seats.Add(new Seat(i));
+                Seats.Add(new Seat(i));
             }
         }
 
         private void PlacePlayerOnSeat(Player player, int seatNumber)
         {
-            _seats[seatNumber].Add(player);
+            if (_players.Any(p => p.Name == player.Name))
+            {
+                throw new Exception("The user is already at table");
+            }
+            Seats[seatNumber].Add(player);
             int indexInPlayers = 0;
             for (int i = 0; i < seatNumber; i++)
             {
-                if (!_seats[i].IsFree)
+                if (!Seats[i].IsFree)
                 {
                     indexInPlayers++;
                 }
@@ -51,7 +55,7 @@ namespace PokerEngine
             {
                 throw new Exception("No such seat number");
             }
-            if (_seats[seatNumber].IsFree)
+            if (Seats[seatNumber].IsFree)
             {
                 PlacePlayerOnSeat(player, seatNumber);
                 return;
@@ -68,7 +72,7 @@ namespace PokerEngine
             {
                 for (int i = 0; i < SeatsAmount; i++)
                 {
-                    if (_seats[i].IsFree)
+                    if (Seats[i].IsFree)
                     {
                         PlacePlayerOnSeat(player, i);
                         return;
@@ -83,7 +87,7 @@ namespace PokerEngine
 
         private Seat GetSeatWith(Player player)
         {
-            Seat requiredSeat = _seats.Where(x => x.Player == player).FirstOrDefault();
+            Seat requiredSeat = Seats.Where(x => x.Player == player).FirstOrDefault();
             return requiredSeat ?? throw new Exception("No such player");
         }
 
@@ -105,13 +109,13 @@ namespace PokerEngine
             {
                 throw new Exception("No such seat number");
             }
-            if (_seats[seatNumber].IsFree)
+            if (Seats[seatNumber].IsFree)
             {
                 throw new Exception("There is no player on the seat");
             }
             else
             {
-                return _seats[seatNumber].Player;
+                return Seats[seatNumber].Player;
             }
         }
 
@@ -134,7 +138,7 @@ namespace PokerEngine
             {
                 throw new Exception("No such seat number");
             }
-            Seat seatWithDealetingPlayer = _seats[seatNumber];
+            Seat seatWithDealetingPlayer = Seats[seatNumber];
             DeleteAt(seatWithDealetingPlayer);
         }
 

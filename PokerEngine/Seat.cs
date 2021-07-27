@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PokerEngine
 {
-    class Seat
+    public class Seat
     {
         public bool IsFree => Player == null;
         public readonly int Number; 

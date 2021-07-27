@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OnlinePoker.Models;
+using OnlinePoker.Models.Hubs;
 using OnlinePoker.Service;
 using System;
 using System.Collections.Generic;
@@ -23,9 +24,9 @@ namespace OnlinePoker
         public void ConfigureServices(IServiceCollection services)
         {
             Configuration.Bind("Project", new Config());
-
+            services.AddSignalR();
             services.AddDbContext<AppDbContext>(x => x.UseSqlServer(Config.ConnectionString));
-
+            services.AddSingleton<PokerBusinessLogic>();
             services.AddIdentity<IdentityPokerUser, IdentityRole>(options =>
             {
                 options.User.RequireUniqueEmail = true;
@@ -63,7 +64,10 @@ namespace OnlinePoker
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapControllerRoute("admin", "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapControllerRoute("default", "{controller=Account}/{action=Login}/{id?}");
+                endpoints.MapHub<GameHub>("/game/{tableId}");
+
             });
         }
     }

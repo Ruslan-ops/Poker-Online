@@ -33,7 +33,7 @@ namespace OnlinePoker.Models
 
         public IEnumerable<Winner> Winners { get; set; }
 
-        protected Deal()
+        public Deal()
         {
             PotSize = 0;
             LastRound = "Preflop";

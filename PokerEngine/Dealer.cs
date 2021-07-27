@@ -135,5 +135,10 @@ namespace PokerEngine
         {
             return _betsLogAtRound.GetBetSizeInRoundOf(player);
         }
+
+        internal List<MoveAlias> GetAllowedMovesFor(Player player)
+        {
+            return _allowedMovesUnit.GetAllowedMovesFor(player);
+        }
     }
 }

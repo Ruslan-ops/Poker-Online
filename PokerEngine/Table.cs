@@ -29,6 +29,7 @@ namespace PokerEngine
         public Player SmallBlind => _playersCircle.GetSmallBlind();
         public Player Button => _playersCircle.GetButton();
         public RoundType CurrentRound => _currentRound != null ? _currentRound.RoundType : throw new InvalidOperationException("Deal hasn't started yet");
+        public IEnumerable<Seat> Seats { get; set; }
         private Round _currentRound;
         private Dealer _dealer;
         private PlayersSittingInCircle _playersCircle;
@@ -36,7 +37,7 @@ namespace PokerEngine
 
         public Table(int maxPlayersAmount, int minStartStack, int maxStartStack, int smallBlindSize)
         {
-            if(maxPlayersAmount < 2 || minStartStack > maxStartStack || minStartStack <= 0 || smallBlindSize <= 0)
+            if (maxPlayersAmount < 2 || minStartStack > maxStartStack || minStartStack <= 0 || smallBlindSize <= 0)
             {
                 throw new ArgumentException("Invalid arguments for creating the table");
             }
@@ -79,14 +80,30 @@ namespace PokerEngine
 
         public void StartNewDeal()
         {
-            _currentRound = new Preflop();
-            _dealer.Reset();
-            DealCardsToPlayers();
-            _playersCircle.AssignNewButton();
-            _moveOrderAtRound.Update(_currentRound);
-            BetBlinds();
-            IsDeal = true;
-            DealStartedEvent?.Invoke();
+            if (_playersCircle.Where(p => p.HasChips).Count() > 1)
+            {
+                _currentRound = new Preflop();
+                _dealer.Reset();
+                DealCardsToPlayers();
+                _playersCircle.AssignNewButton();
+                _moveOrderAtRound.Update(_currentRound);
+                BetBlinds();
+                IsDeal = true;
+                DealStartedEvent?.Invoke();
+            }
+            else
+            {
+                throw new Exception("There are too few players to start new deal");
+            }
+        }
+
+        public List<MoveAlias> GetAllowedMovesFor(Player player)
+        {
+            if (_playersCircle.Contains(player) && player.IsInDeal)
+            {
+                return _dealer.GetAllowedMovesFor(player);
+            }
+            throw new Exception("No such player in the deal");
         }
 
         private void BetBlinds()
@@ -151,6 +168,16 @@ namespace PokerEngine
             return _playersCircle.Get(seatNumber);
         }
 
+        public Player GetPlayer(string playerName)
+        {
+            return _playersCircle.Get(playerName);
+        }
+
+        public Seat GetSeatOf(string playerName)
+        {
+            return _playersCircle.Seats.Single(seat => seat.Player == GetPlayer(playerName));
+        }
+
         private void DealCardsToPlayers()
         {
             var playersWithChips = _playersCircle.Where(p => p.HasChips);
@@ -164,7 +191,8 @@ namespace PokerEngine
         {
             Player firstAtRound = _moveOrderAtRound.FirstPlayerAtCurrentRound;
             _moveOrderAtRound.Update(firstAtRound);
-            if (_moveOrderAtRound.IsEmpty || _moveOrderAtRound.Count == 1)
+            bool isEverybodyMadeAllIn = _moveOrderAtRound.IsEmpty || _moveOrderAtRound.Count == 1 && GetBetSizeOf(_moveOrderAtRound.GetWhoseMove()) == CurrentMaxBetSize;
+            if (isEverybodyMadeAllIn)
             {
                 SkipRoundsToShowDown();
             }
@@ -181,8 +209,9 @@ namespace PokerEngine
 
         public void AddPlayer(string playerName, int stackSize)
         {
-            if(stackSize >= MinStartStack && stackSize <= MaxStartStack)
+            if (stackSize >= MinStartStack && stackSize <= MaxStartStack)
             {
+
                 Player player = new Player(stackSize, _dealer, playerName);
                 _playersCircle.Add(player);
             }
@@ -231,7 +260,7 @@ namespace PokerEngine
             {
                 _dealer.CheckThatMoveIsAllowed(player, move);
                 move.Make(player);
-                if(!_moveOrderAtRound.IsEmpty)
+                if (!_moveOrderAtRound.IsEmpty)
                 {
                     _moveOrderAtRound.GiveMoveToNextPlayer();
                 }
